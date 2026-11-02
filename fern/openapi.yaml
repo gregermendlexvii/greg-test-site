@@ -16,7 +16,7 @@ info:
     - Use `api_key` for store endpoints requiring authorization.
     - OAuth2 flow is available for plant-specific operations.
     
-  version: 2.0.0
+  version: 3.0.0
   title: Swagger Plant Store - OpenAPI 3.1
   termsOfService: "http://buildwithfern.com/tos/"
   contact:
@@ -330,22 +330,26 @@ paths:
         "409":
           description: Order has already shipped and cannot be cancelled
   /user/auth/login:
-    get:
+    post:
       tags:
         - user
       summary: Logs user into the system
+      description: |
+        Exchange a username and password for an access token and a refresh token.
+        Credentials go in the JSON request body; query-parameter credentials are no longer accepted.
       operationId: loginUser
-      parameters:
-        - name: username
-          in: query
-          description: The username for login
-          schema:
-            type: string
-        - name: password
-          in: query
-          description: The password for login
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+            examples:
+              exampleRequest:
+                summary: Log in as john_doe
+                value:
+                  username: "john_doe"
+                  password: "correct-horse-battery-staple"
       responses:
         "200":
           description: Successful login
@@ -363,15 +367,55 @@ paths:
                   summary: Successful login response
                   value:
                     token: "abc123token"
-                    expiresIn: 3600
+                    expiresIn: 900
+                    refreshToken: "rt_9f8e7d6c5b4a"
+        "401":
+          description: Invalid username or password
+  /user/auth/refresh:
+    post:
+      tags:
+        - user
+      summary: Refresh an access token
+      description: |
+        Exchange a refresh token for a new access token before the current one expires.
+        Each refresh token can be used once; the response includes a new one.
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+            examples:
+              exampleRequest:
+                summary: Refresh a token
+                value:
+                  refreshToken: "rt_9f8e7d6c5b4a"
+      responses:
+        "200":
+          description: New access and refresh tokens
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserAuthResponse"
+              examples:
+                exampleResponse:
+                  summary: Refreshed tokens
+                  value:
+                    token: "def456token"
+                    expiresIn: 900
+                    refreshToken: "rt_1a2b3c4d5e6f"
+        "401":
+          description: Refresh token is invalid, expired, or already used
   /user/auth/logout:
-    get:
+    post:
       tags:
         - user
       summary: Logs out current logged-in user session
+      description: End the current session and revoke its refresh token.
       operationId: logoutUser
       responses:
-        default:
+        "204":
           description: Successful logout
   /user/{username}:
     get:
@@ -459,15 +503,36 @@ components:
           type: array
           items:
             type: string
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          description: The username for login
+        password:
+          type: string
+          format: password
+          description: The password for login
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+          description: Refresh token from a previous login or refresh
     UserAuthResponse:
       type: object
       properties:
         token:
           type: string
-          description: Authentication token
+          description: Access token
         expiresIn:
           type: integer
-          description: Token expiration time in seconds
+          description: Access token lifetime in seconds (15 minutes)
+        refreshToken:
+          type: string
+          description: Single-use token for getting a new access token from `/user/auth/refresh`
     User:
       type: object
       properties:
