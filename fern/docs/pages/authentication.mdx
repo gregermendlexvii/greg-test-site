@@ -8,41 +8,63 @@ The Plant Store API uses session tokens. Log in with a username and password to 
 
 ## Log in
 
-Call [`GET /user/auth/login`](/docs/api-reference/user/login-user) with `username` and `password` query parameters:
+Call [`POST /user/auth/login`](/docs/api-reference/user/login-user) with a JSON body containing `username` and `password`:
 
 ```bash
-curl -i "https://api.plantstore.dev/v3/user/auth/login?username=john_doe&password=$PLANTSTORE_PASSWORD"
+curl -i -X POST "https://api.plantstore.dev/v3/user/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"john_doe","password":"'"$PLANTSTORE_PASSWORD"'"}'
 ```
 
-A successful login returns the token in the response body and also sets it as a session cookie through the `Set-Cookie` header:
+A successful login returns an access token and a refresh token:
 
 ```json
 {
   "token": "abc123token",
-  "expiresIn": 3600
+  "expiresIn": 900,
+  "refreshToken": "rt_9f8e7d6c5b4a"
 }
 ```
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `token` | string | Session token for the logged-in user |
-| `expiresIn` | integer | Seconds until the token expires |
+| `token` | string | Access token for the logged-in user |
+| `expiresIn` | integer | Seconds until the access token expires (15 minutes) |
+| `refreshToken` | string | Single-use token for getting a new access token |
 
-<Warning>
-Credentials are sent as query parameters, so keep them out of logs and shell history. Read the password from an environment variable as shown above.
-</Warning>
+Returns `401` if the username or password is incorrect.
 
-## Token expiry
+## Token expiry and refresh
 
-Tokens expire after `expiresIn` seconds (3600, or one hour, in the example above). When a token expires, log in again to get a new one.
+Access tokens expire after `expiresIn` seconds (900, or 15 minutes). Before the token expires, exchange the refresh token for a new access token and refresh token:
+
+Call [`POST /user/auth/refresh`](/docs/api-reference/user/refresh-token) with the refresh token in the request body:
+
+```bash
+curl -X POST "https://api.plantstore.dev/v3/user/auth/refresh" \
+  -H "Content-Type: application/json" \
+  -d '{"refreshToken":"rt_9f8e7d6c5b4a"}'
+```
+
+```json
+{
+  "token": "def456token",
+  "expiresIn": 900,
+  "refreshToken": "rt_1a2b3c4d5e6f"
+}
+```
+
+Each refresh token can be used once. The response includes a new refresh token to use next time. Returns `401` if the refresh token is invalid, expired, or already used — in that case, log in again.
 
 ## Log out
 
-Call [`GET /user/auth/logout`](/docs/api-reference/user/logout-user) to end the current session:
+Call [`POST /user/auth/logout`](/docs/api-reference/user/logout-user) to end the current session and revoke its refresh token:
 
 ```bash
-curl "https://api.plantstore.dev/v3/user/auth/logout"
+curl -X POST "https://api.plantstore.dev/v3/user/auth/logout"
 ```
+
+Returns `204` on success.
 
 ## Real-time events
 

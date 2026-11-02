@@ -1,3 +1,16 @@
+## 3.0.0
+
+<Warning>
+This release contains breaking changes to the authentication endpoints.
+</Warning>
+
+- **Breaking:** `POST /user/auth/login` now requires credentials in a JSON request body (`username`, `password`). Query-parameter credentials are no longer accepted.
+- **Breaking:** `POST /user/auth/logout` now returns `204` and revokes the session's refresh token. The endpoint was previously `GET`.
+- Access tokens now expire after 15 minutes (`expiresIn: 900`, previously 3600).
+- Login responses now include a `refreshToken` field.
+- New: `POST /user/auth/refresh` — exchange a refresh token for a new access token and refresh token. Each refresh token is single-use. Returns `401` if the token is invalid, expired, or already used.
+- API version bumped from 2.0.0 to 3.0.0.
+
 ## 2.0.0
 
 <Warning>
