@@ -16,7 +16,7 @@ info:
     - Use `api_key` for store endpoints requiring authorization.
     - OAuth2 flow is available for plant-specific operations.
     
-  version: 1.0.18
+  version: 1.1.0
   title: Swagger Plant Store - OpenAPI 3.1
   termsOfService: "http://buildwithfern.com/tos/"
   contact:
@@ -134,7 +134,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: [available, pending, sold]
+            enum: [available, pending, sold, archived]
       responses:
         "200":
           description: List of plants matching the status filter
@@ -221,6 +221,28 @@ paths:
                     name: "Fern"
                     status: "available"
                     tags: ["green", "leafy"]
+    delete:
+      tags:
+        - plant
+      summary: Delete a plant
+      description: |
+        Permanently remove a plant from the store by its ID. Plants with a `pending` order
+        cannot be deleted; set their status to `archived` instead.
+      operationId: deletePlant
+      parameters:
+        - name: plantId
+          in: path
+          description: ID of the plant to delete
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Plant deleted successfully
+        "404":
+          description: Plant not found
+        "409":
+          description: Plant has a pending order and cannot be deleted
   /user/auth/login:
     get:
       tags:
