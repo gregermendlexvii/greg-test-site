@@ -44,11 +44,13 @@ https://api.plantstore.dev/v3
 Exchange a username and password for a session token. See [Authentication](/authentication) for details.
 
 ```bash
-curl "https://api.plantstore.dev/v3/user/auth/login?username=john_doe&password=$PLANTSTORE_PASSWORD"
+curl -X POST "https://api.plantstore.dev/v3/user/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"john_doe","password":"'"$PLANTSTORE_PASSWORD"'"}'
 ```
 
 ```json
-{ "token": "abc123token", "expiresIn": 3600 }
+{ "token": "abc123token", "expiresIn": 900, "refreshToken": "rt_9f8e7d6c5b4a" }
 ```
 
 </Step>
