@@ -16,7 +16,7 @@ info:
     - Use `api_key` for store endpoints requiring authorization.
     - OAuth2 flow is available for plant-specific operations.
     
-  version: 1.1.0
+  version: 1.2.0
   title: Swagger Plant Store - OpenAPI 3.1
   termsOfService: "http://buildwithfern.com/tos/"
   contact:
@@ -243,6 +243,88 @@ paths:
           description: Plant not found
         "409":
           description: Plant has a pending order and cannot be deleted
+  /store/order:
+    post:
+      tags:
+        - store
+      summary: Place an order for a plant
+      description: |
+        Place an order for a plant that is `available`. On success the plant's status
+        changes to `pending` until the order is delivered or cancelled.
+      operationId: placeOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderRequest"
+            examples:
+              exampleRequest:
+                summary: Order one Fern
+                value:
+                  plantId: 101
+                  quantity: 1
+      responses:
+        "201":
+          description: Order placed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+              examples:
+                exampleResponse:
+                  summary: Placed order
+                  value:
+                    id: 5001
+                    plantId: 101
+                    quantity: 1
+                    status: "placed"
+                    shipDate: "2026-11-09T00:00:00Z"
+        "409":
+          description: Plant is not available to order
+  /store/order/{orderId}:
+    get:
+      tags:
+        - store
+      summary: Find order by ID
+      description: Retrieve an order's details and current status by its ID.
+      operationId: getOrderById
+      parameters:
+        - name: orderId
+          in: path
+          description: ID of the order to retrieve
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Details of the requested order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Order not found
+    delete:
+      tags:
+        - store
+      summary: Cancel an order
+      description: Cancel an order that has not shipped yet. The plant's status returns to `available`.
+      operationId: cancelOrder
+      parameters:
+        - name: orderId
+          in: path
+          description: ID of the order to cancel
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Order cancelled
+        "404":
+          description: Order not found
+        "409":
+          description: Order has already shipped and cannot be cancelled
   /user/auth/login:
     get:
       tags:
@@ -330,7 +412,7 @@ components:
             type: string
         status:
           type: string
-          enum: [available, pending, sold]
+          enum: [available, pending, sold, archived]
     PlantResponse:
       type: object
       properties:
@@ -362,3 +444,29 @@ components:
           type: string
         email:
           type: string
+    OrderRequest:
+      type: object
+      required: [plantId, quantity]
+      properties:
+        plantId:
+          type: integer
+          description: ID of the plant to order
+        quantity:
+          type: integer
+          minimum: 1
+          description: Number of plants to order
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        plantId:
+          type: integer
+        quantity:
+          type: integer
+        status:
+          type: string
+          enum: [placed, shipped, delivered, cancelled]
+        shipDate:
+          type: string
+          format: date-time
