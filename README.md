@@ -19,3 +19,5 @@ The docs starter template for CLI users is still at [fern-api/docs-starter](http
 ## Making changes to this template
 
 Any changes here affect what every new user gets when they create a docs site from the dashboard. Test locally with `fern docs dev` and `fern check` before merging.
+
+<!-- random change: 1793652040 -->
