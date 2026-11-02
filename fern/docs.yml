@@ -2,7 +2,7 @@
 
 instances:
   - url: gregs-test-company.docs.buildwithfern.com
-title: gregs-test-company | Documentation
+title: Plant Store API | Documentation
 layout:
   searchbar-placement: header
   page-width: full
@@ -19,24 +19,30 @@ navigation:
           - page: Welcome
             path: docs/pages/welcome.mdx
             icon: fa-duotone fa-house
-          - page: Edit your docs
-            path: docs/pages/editing-your-docs.mdx
-            icon: fa-duotone fa-pen-to-square
-          - page: Write content
-            path: docs/pages/writing-content.mdx
-            icon: fa-duotone fa-file-lines
-          - page: Set up navigation
-            path: docs/pages/navigation.mdx
-            icon: fa-duotone fa-sitemap
-          - page: Customize your docs
-            path: docs/pages/customization.mdx
-            icon: fa-duotone fa-palette
+          - page: Authentication
+            path: docs/pages/authentication.mdx
+            icon: fa-duotone fa-key
+      - section: Guides
+        contents:
+          - page: Plants
+            path: docs/pages/plants.mdx
+            icon: fa-duotone fa-seedling
+          - page: Orders
+            path: docs/pages/orders.mdx
+            icon: fa-duotone fa-cart-shopping
+          - page: Pagination
+            path: docs/pages/pagination.mdx
+            icon: fa-duotone fa-arrow-right-arrow-left
+          - page: Real-time events
+            path: docs/pages/real-time-events.mdx
+            icon: fa-duotone fa-bolt
+      - api: API Reference
+      - section: Resources
+        contents:
+          - changelog: docs/changelog
           - page: Support
             path: docs/pages/support.mdx
             icon: fa-duotone fa-headset
-      - section: Changelog
-        contents:
-          - changelog: docs/changelog
 navbar-links:
   - type: filled
     text: Edit

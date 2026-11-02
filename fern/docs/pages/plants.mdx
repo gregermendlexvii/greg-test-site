@@ -1,0 +1,85 @@
+---
+title: Plants
+subtitle: Add, update, search, and remove plants in your catalog
+slug: plants
+---
+
+A plant is an item in your store's catalog. Every plant has a status that controls whether it can be ordered.
+
+## The plant object
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | integer | Unique ID, assigned when the plant is added |
+| `name` | string | Display name, such as `Fern` |
+| `category` | string | Grouping such as `Indoor` |
+| `tags` | string[] | Free-form labels used for search, such as `["green", "leafy"]` |
+| `status` | string | One of `available`, `pending`, `sold`, or `archived` |
+
+## Plant statuses
+
+| Status | Meaning |
+|--------|---------|
+| `available` | In stock and can be ordered |
+| `pending` | Has an open order. Set automatically when an order is placed. |
+| `sold` | Sold and no longer in stock |
+| `archived` | Retired from the catalog but kept for history |
+
+Placing an [order](/orders) moves a plant from `available` to `pending`. Cancelling that order moves it back to `available`.
+
+## Add a plant
+
+Call [`POST /plant`](/docs/api-reference/plant/add-plant) with the plant's details:
+
+```bash
+curl -X POST "https://api.plantstore.dev/v3/plant" \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "Fern", "category": "Indoor", "tags": ["green", "leafy"], "status": "available" }'
+```
+
+The response includes the new plant's `id`.
+
+## Update a plant
+
+Call [`PUT /plant`](/docs/api-reference/plant/update-plant) with the updated details. For example, to mark a plant as sold:
+
+```bash
+curl -X PUT "https://api.plantstore.dev/v3/plant" \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "Fern", "category": "Indoor", "tags": ["green", "leafy"], "status": "sold" }'
+```
+
+## Get a plant
+
+Call [`GET /plant/{plantId}`](/docs/api-reference/plant/get-plant-by-id):
+
+```bash
+curl "https://api.plantstore.dev/v3/plant/101"
+```
+
+## Search plants
+
+Two endpoints search the catalog. Both return results a page at a time; see [Pagination](/pagination).
+
+- [`GET /plant/search/status`](/docs/api-reference/plant/search-plants-by-status) filters by `status`.
+- [`GET /plant/search/tags`](/docs/api-reference/plant/search-plants-by-tags) filters by `tags`.
+
+```bash
+curl "https://api.plantstore.dev/v3/plant/search/tags?tags=green&limit=20"
+```
+
+## Delete a plant
+
+Call [`DELETE /plant/{plantId}`](/docs/api-reference/plant/delete-plant) to remove a plant permanently. A successful delete returns `204 No Content`.
+
+```bash
+curl -X DELETE "https://api.plantstore.dev/v3/plant/101"
+```
+
+You can't delete a plant that has a pending order; the API returns `409 Conflict`. To take it out of the catalog, set its status to `archived` instead.
+
+| Status code | Meaning |
+|-------------|---------|
+| `204` | Plant deleted |
+| `404` | No plant with that ID |
+| `409` | Plant has a pending order and can't be deleted |

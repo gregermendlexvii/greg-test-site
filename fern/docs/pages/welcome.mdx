@@ -1,6 +1,6 @@
 ---
-title: Welcome to gregs-test-company!
-subtitle: Everything you need to build the best developer experience. (Clerk test 4)
+title: Plant Store API
+subtitle: Manage a plant catalog, take orders, and react to inventory changes in real time.
 slug: welcome
 hide-page-actions: true
 hide-nav-links: true
@@ -13,57 +13,70 @@ layout: overview
   <img src="../assets/welcome-dark.jpg" className="hidden dark:block" style={{pointerEvents:'none',cursor:'default',transform:'none',transition:'none',animation:'none'}} />
 </div>
 
-## Products
+## What you can build
 
 <CardGroup cols={3}>
-  <Card title="Payments" icon="duotone credit-card">
-    Accept one-time and recurring payments with a simple, unified API
+  <Card title="Plants" icon="duotone seedling" href="/plants">
+    Add, update, search, and retire plants in your catalog
   </Card>
-  <Card title="Subscriptions" icon="duotone arrows-repeat">
-    Create and manage recurring billing plans with built-in proration and trials
+  <Card title="Orders" icon="duotone cart-shopping" href="/orders">
+    Place orders for available plants and track them through delivery
   </Card>
-  <Card title="Invoicing" icon="duotone file-invoice-dollar">
-    Generate, send, and track invoices automatically
+  <Card title="Real-time events" icon="duotone bolt" href="/real-time-events">
+    Subscribe over WebSocket to plant lifecycle events as they happen
   </Card>
 </CardGroup>
 
 ## Get started
 
 <Steps>
-<Step title="Install the SDK">
+<Step title="Note the base URL">
 
-One SDK gives you access to Payments, Subscriptions, and Invoicing. 
-<CodeBlocks>
-  ```bash title="npm"
-  npm install @acme/sdk
-  ```
+All REST endpoints are served from:
 
-  ```bash title="pip"
-  pip install acme-sdk
-  ```
-
-  ```bash title="go"
-  go get github.com/acme/acme-go
-  ```
-</CodeBlocks>
-
-</Step>
-<Step title="Authenticate">
-
-Create an API key from the Acme Dashboard and add it to your environment:
-
-```bash
-export ACME_API_KEY="sk_live_..."
+```
+https://api.plantstore.dev/v3
 ```
 
 </Step>
-<Step title="Explore the docs">
+<Step title="Log in">
 
-You're ready to go. Dive deeper into the platform:
+Exchange a username and password for a session token. See [Authentication](/authentication) for details.
 
-- [API reference](/api-reference) — browse all available endpoints
-- [Write content](/writing-content) — author pages with MDX and components
-- [Edit your docs](/editing-your-docs) — customize content, styling, and structure
+```bash
+curl "https://api.plantstore.dev/v3/user/auth/login?username=john_doe&password=$PLANTSTORE_PASSWORD"
+```
+
+```json
+{ "token": "abc123token", "expiresIn": 3600 }
+```
+
+</Step>
+<Step title="Make your first request">
+
+Search the catalog for plants that are available to order:
+
+```bash
+curl "https://api.plantstore.dev/v3/plant/search/status?status=available&limit=20"
+```
+
+```json
+{
+  "data": [
+    { "id": 101, "name": "Fern", "status": "available", "tags": ["green", "leafy"] },
+    { "id": 102, "name": "Palm", "status": "available", "tags": ["tropical"] }
+  ],
+  "nextCursor": "eyJpZCI6MTAzfQ"
+}
+```
+
+</Step>
+<Step title="Go further">
+
+- [Plants](/plants): the plant lifecycle and how statuses change
+- [Orders](/orders): place, look up, and cancel orders
+- [Pagination](/pagination): page through search results
+- [API reference](/docs/api-reference/plant/add-plant): every endpoint, with an interactive explorer
 
 </Step>
 </Steps>
