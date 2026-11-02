@@ -16,7 +16,7 @@ info:
     - Use `api_key` for store endpoints requiring authorization.
     - OAuth2 flow is available for plant-specific operations.
     
-  version: 1.2.0
+  version: 2.0.0
   title: Swagger Plant Store - OpenAPI 3.1
   termsOfService: "http://buildwithfern.com/tos/"
   contact:
@@ -125,7 +125,7 @@ paths:
       tags:
         - plant
       summary: Search plants by status
-      description: Filter plants based on their current status.
+      description: Filter plants based on their current status. Results are paginated; pass `nextCursor` back as `cursor` to fetch the next page.
       operationId: searchPlantsByStatus
       parameters:
         - name: status
@@ -135,33 +135,35 @@ paths:
           schema:
             type: string
             enum: [available, pending, sold, archived]
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
       responses:
         "200":
           description: List of plants matching the status filter
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/PlantResponse"
+                $ref: "#/components/schemas/PlantSearchPage"
               examples:
                 exampleResponse:
                   summary: Plants with status available
                   value:
-                    - id: 101
-                      name: "Fern"
-                      status: "available"
-                      tags: ["green", "leafy"]
-                    - id: 102
-                      name: "Palm"
-                      status: "available"
-                      tags: ["tropical"]
+                    data:
+                      - id: 101
+                        name: "Fern"
+                        status: "available"
+                        tags: ["green", "leafy"]
+                      - id: 102
+                        name: "Palm"
+                        status: "available"
+                        tags: ["tropical"]
+                    nextCursor: "eyJpZCI6MTAzfQ"
   /plant/search/tags:
     get:
       tags:
         - plant
       summary: Search plants by tags
-      description: Filter plants based on associated tags.
+      description: Filter plants based on associated tags. Results are paginated; pass `nextCursor` back as `cursor` to fetch the next page.
       operationId: searchPlantsByTags
       parameters:
         - name: tags
@@ -171,27 +173,29 @@ paths:
             type: array
             items:
               type: string
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
       responses:
         "200":
           description: List of plants matching the tags filter
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/PlantResponse"
+                $ref: "#/components/schemas/PlantSearchPage"
               examples:
                 exampleResponse:
                   summary: Plants filtered by tags
                   value:
-                    - id: 101
-                      name: "Fern"
-                      status: "available"
-                      tags: ["green", "leafy"]
-                    - id: 103
-                      name: "Cactus"
-                      status: "available"
-                      tags: ["spiky", "desert"]
+                    data:
+                      - id: 101
+                        name: "Fern"
+                        status: "available"
+                        tags: ["green", "leafy"]
+                      - id: 103
+                        name: "Cactus"
+                        status: "available"
+                        tags: ["spiky", "desert"]
+                    nextCursor: "eyJpZCI6MTAzfQ"
   /plant/{plantId}:
     get:
       tags:
@@ -398,7 +402,36 @@ paths:
                     username: "john_doe"
                     email: "john@example.com"
 components:
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      description: Maximum number of plants to return per page (1-100).
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Cursor:
+      name: cursor
+      in: query
+      description: Opaque cursor from a previous page's `nextCursor`. Omit it to fetch the first page.
+      required: false
+      schema:
+        type: string
   schemas:
+    PlantSearchPage:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlantResponse"
+        nextCursor:
+          type: [string, "null"]
+          description: Cursor for the next page, or null when there are no more results.
     Plant:
       type: object
       properties:
