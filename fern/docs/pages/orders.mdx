@@ -1,0 +1,74 @@
+---
+title: Orders
+subtitle: Place orders for plants, track them, and cancel them before they ship
+slug: orders
+---
+
+An order reserves a quantity of a plant for a customer. Orders change the status of the plant they're for, so the catalog always shows what can still be bought.
+
+## The order object
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | integer | Unique order ID |
+| `plantId` | integer | ID of the plant being ordered |
+| `quantity` | integer | Number of plants ordered |
+| `status` | string | One of `placed`, `shipped`, `delivered`, or `cancelled` |
+| `shipDate` | string (date-time) | When the order ships or shipped |
+
+## Order lifecycle
+
+```
+placed ──► shipped ──► delivered
+   │
+   └──► cancelled
+```
+
+| Order status | Plant status |
+|--------------|--------------|
+| `placed` | The plant moves from `available` to `pending` |
+| `cancelled` | The plant moves back to `available` |
+
+## Place an order
+
+Call [`POST /store/order`](/docs/api-reference/store/place-order) with the plant ID and quantity. The plant must be `available`.
+
+```bash
+curl -X POST "https://api.plantstore.dev/v3/store/order" \
+  -H "Content-Type: application/json" \
+  -d '{ "plantId": 101, "quantity": 1 }'
+```
+
+```json
+{
+  "id": 5001,
+  "plantId": 101,
+  "quantity": 1,
+  "status": "placed",
+  "shipDate": "2026-11-09T00:00:00Z"
+}
+```
+
+Both fields are required, and `quantity` must be at least 1. If the plant isn't available, the API returns `409 Conflict`.
+
+## Get an order
+
+Call [`GET /store/order/{orderId}`](/docs/api-reference/store/get-order-by-id) to check an order's status:
+
+```bash
+curl "https://api.plantstore.dev/v3/store/order/5001"
+```
+
+## Cancel an order
+
+Call [`DELETE /store/order/{orderId}`](/docs/api-reference/store/cancel-order) to cancel an order that hasn't shipped. A successful cancel returns `204 No Content`, and the plant goes back to `available`.
+
+```bash
+curl -X DELETE "https://api.plantstore.dev/v3/store/order/5001"
+```
+
+| Status code | Meaning |
+|-------------|---------|
+| `204` | Order cancelled |
+| `404` | No order with that ID |
+| `409` | Order has already shipped and can't be cancelled |

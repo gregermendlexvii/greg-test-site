@@ -1,0 +1,55 @@
+---
+title: Pagination
+subtitle: Page through plant search results with cursors
+slug: pagination
+---
+
+The plant search endpoints, [`GET /plant/search/status`](/docs/api-reference/plant/search-plants-by-status) and [`GET /plant/search/tags`](/docs/api-reference/plant/search-plants-by-tags), return results one page at a time.
+
+## Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `limit` | integer | Plants per page, from 1 to 100. Defaults to 20. |
+| `cursor` | string | The `nextCursor` from the previous page. Omit it to get the first page. |
+
+## Response
+
+Each page is an object with the results in `data` and a cursor for the next page:
+
+```json
+{
+  "data": [
+    { "id": 101, "name": "Fern", "status": "available", "tags": ["green", "leafy"] },
+    { "id": 102, "name": "Palm", "status": "available", "tags": ["tropical"] }
+  ],
+  "nextCursor": "eyJpZCI6MTAzfQ"
+}
+```
+
+When there are no more results, `nextCursor` is `null`.
+
+## Fetch every page
+
+Keep requesting pages, passing each `nextCursor` back as `cursor`, until `nextCursor` is `null`:
+
+```python
+import requests
+
+url = "https://api.plantstore.dev/v3/plant/search/status"
+params = {"status": "available", "limit": 100}
+plants = []
+
+while True:
+    page = requests.get(url, params=params).json()
+    plants.extend(page["data"])
+    if page["nextCursor"] is None:
+        break
+    params["cursor"] = page["nextCursor"]
+```
+
+Cursors are opaque. Don't parse them or build your own; always use the value the API returns.
+
+## Upgrading from 1.x
+
+Before version 2.0.0, the search endpoints returned a plain list of plants and had no pagination. If your code reads the response as a list, read `data` instead and follow `nextCursor` to get results past the first page.

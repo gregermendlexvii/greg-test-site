@@ -1,0 +1,60 @@
+---
+title: Real-time events
+subtitle: Get plant lifecycle events over WebSocket as they happen
+slug: real-time-events
+---
+
+The Plant Store WebSocket API pushes events when plants are created, updated, or change status, so you don't have to poll the REST API.
+
+## Connect
+
+Open a WebSocket connection to:
+
+```
+wss://ws.plantstore.dev/ws/plants
+```
+
+Send your [session token](/authentication) as a bearer token in the `Authorization` header.
+
+## Subscribe to events
+
+By default you receive every event type. To filter, send a subscribe message with the event types you want. You can also narrow it to a single plant with `plantId`:
+
+```json
+{
+  "action": "subscribe",
+  "eventTypes": ["plant.created", "plant.updated"]
+}
+```
+
+Send the same message with `"action": "unsubscribe"` to stop receiving those events.
+
+## Event types
+
+| Event | Sent when |
+|-------|-----------|
+| `plant.created` | A plant is added |
+| `plant.updated` | A plant's details change |
+| `plant.status.changed` | A plant's status changes, for example when an order is placed |
+
+`plant.created` and `plant.updated` include the full plant in `data`:
+
+```json
+{
+  "type": "plant.created",
+  "occurredAt": "2026-02-09T14:12:00Z",
+  "data": { "id": 101, "name": "Fern", "status": "available", "tags": ["green", "leafy"] }
+}
+```
+
+`plant.status.changed` includes the plant ID and both statuses:
+
+```json
+{
+  "type": "plant.status.changed",
+  "occurredAt": "2026-02-09T14:21:00Z",
+  "plantId": 101,
+  "previousStatus": "available",
+  "newStatus": "sold"
+}
+```

@@ -1,0 +1,49 @@
+---
+title: Authentication
+subtitle: Log in to get a session token, and log out to end the session
+slug: authentication
+---
+
+The Plant Store API uses session tokens. Log in with a username and password to get one, and log out when you're done.
+
+## Log in
+
+Call [`GET /user/auth/login`](/docs/api-reference/user/login-user) with `username` and `password` query parameters:
+
+```bash
+curl -i "https://api.plantstore.dev/v3/user/auth/login?username=john_doe&password=$PLANTSTORE_PASSWORD"
+```
+
+A successful login returns the token in the response body and also sets it as a session cookie through the `Set-Cookie` header:
+
+```json
+{
+  "token": "abc123token",
+  "expiresIn": 3600
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `token` | string | Session token for the logged-in user |
+| `expiresIn` | integer | Seconds until the token expires |
+
+<Warning>
+Credentials are sent as query parameters, so keep them out of logs and shell history. Read the password from an environment variable as shown above.
+</Warning>
+
+## Token expiry
+
+Tokens expire after `expiresIn` seconds (3600, or one hour, in the example above). When a token expires, log in again to get a new one.
+
+## Log out
+
+Call [`GET /user/auth/logout`](/docs/api-reference/user/logout-user) to end the current session:
+
+```bash
+curl "https://api.plantstore.dev/v3/user/auth/logout"
+```
+
+## Real-time events
+
+The [WebSocket API](/real-time-events) takes the same token as a bearer token in the `Authorization` header when you connect.

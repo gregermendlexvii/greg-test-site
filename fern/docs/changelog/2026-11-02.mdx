@@ -1,0 +1,18 @@
+## 2.0.0
+
+<Warning>
+This release contains a breaking change to the plant search endpoints.
+</Warning>
+
+- **Breaking:** `GET /plant/search/status` and `GET /plant/search/tags` are now paginated. They return a `{ data, nextCursor }` object instead of a plain list of plants. Read results from `data`. See [Pagination](/pagination) for upgrade steps.
+- Added `limit` and `cursor` query parameters to both search endpoints.
+
+## 1.2.0
+
+- Added [orders](/orders): `POST /store/order` to place an order, `GET /store/order/{orderId}` to look one up, and `DELETE /store/order/{orderId}` to cancel one that hasn't shipped.
+- Placing an order moves the plant to `pending`; cancelling it moves the plant back to `available`.
+
+## 1.1.0
+
+- Added `DELETE /plant/{plantId}` to remove a plant permanently. Plants with a pending order can't be deleted.
+- Added the `archived` plant status, for taking a plant out of the catalog without deleting it.
